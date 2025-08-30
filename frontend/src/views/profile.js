@@ -22,6 +22,7 @@ const UserProfile = () => {
   const [userStats, setUserStats] = useState({});
   const [osmStats, setOsmStats] = useState({});
   const [recentActivity, setRecentActivity] = useState([]);
+  const [monthCount, setMonthCount] = useState(18);
   const [loading, setLoading] = useState(true);
   const token = localStorage.getItem("jwt_token");
 
@@ -31,7 +32,7 @@ const UserProfile = () => {
         const userData = await fetchLocalJSONAPI(
           `user/${username}/`,
           token,
-          "GET"
+          "GET",
         );
         setUserInfo(userData);
 
@@ -41,9 +42,9 @@ const UserProfile = () => {
               fetchLocalJSONAPI(`user/${userData.id}/stats/`, token, "GET"),
               fetchLocalJSONAPI(`user/${userData.id}/osm-stats/`, token, "GET"),
               fetchLocalJSONAPI(
-                `user/${userData.id}/recent-activity/`,
+                `user/${userData.id}/monthly-activity/?total_months=${monthCount}`,
                 token,
-                "GET"
+                "GET",
               ),
             ]);
           setUserStats(statsData);
@@ -82,7 +83,7 @@ const UserProfile = () => {
             />
             <ContributionRadarChart userStats={userStats} />
           </div>
-          <UserRecentActivity recentActivity={recentActivity} />
+          <UserRecentActivity monthlyActivity={recentActivity} />
         </div>
       )}
     </div>

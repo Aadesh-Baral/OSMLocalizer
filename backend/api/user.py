@@ -44,11 +44,11 @@ class UserInfoAPI(Resource):
         return user.as_dto().dict()
 
 
-class UserRecentActivityAPI(Resource):
+class UserMonthlyActivityAPI(Resource):
     @auth.login_required
     def get(self, user_id):
-        limit = request.args.get("limit", 5)
-        return UserService.get_user_recent_activity(user_id, limit)
+        total_months = int(request.args.get("total_months", 1))
+        return UserService.get_user_recent_activity(user_id, total_months)
 
 
 class UserTokenExpiryAPI(Resource):

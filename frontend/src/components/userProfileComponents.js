@@ -42,7 +42,7 @@ export const ContributionRadarChart = ({ userStats }) => {
   // Calculate percentage of contributions
   const totalContributions = contributions.reduce((a, b) => a + b, 0);
   contributions = contributions.map((value) =>
-    ((value / totalContributions) * 100).toFixed(2)
+    ((value / totalContributions) * 100).toFixed(2),
   );
   const data = {
     labels: ["Marked Invalid/Skipped", "Validated", "Localized"],
@@ -103,7 +103,10 @@ export const ContributionRadarChart = ({ userStats }) => {
   return (
     <div className="ps-2 pe-2">
       <h5 className="mt-4 mb-4 card-title">Contribution Summary</h5>
-      <div style={{ width: "350px", height: "350px", margin: "0 auto" }}>
+      <div
+        className="d-flex justify-content-center"
+        style={{ width: "300px", height: "300px", margin: "0 auto" }}
+      >
         <Radar data={data} options={options} />
       </div>
     </div>
@@ -116,7 +119,7 @@ export const UserInfoSection = ({
   isMyProfile,
 }) => {
   const registered_date = new Date(
-    userInfo?.date_registered
+    userInfo?.date_registered,
   ).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
@@ -139,7 +142,6 @@ export const UserInfoSection = ({
     </div>
   );
 };
-
 
 const UserEditProfile = ({ userInfo }) => {
   const [email, setEmail] = useState(userInfo?.email);
@@ -192,7 +194,6 @@ const UserEditProfile = ({ userInfo }) => {
   );
 };
 
-
 const UserStatsCard = ({ type, localized, validated, invalidated }) => {
   const statTypesIcons = {
     node: "node-plus",
@@ -239,7 +240,6 @@ const UserStatsCard = ({ type, localized, validated, invalidated }) => {
   );
 };
 
-
 export const UserStatsSection = ({ osmStats }) => {
   const types = ["node", "way", "relation"];
 
@@ -264,44 +264,97 @@ export const UserStatsSection = ({ osmStats }) => {
   );
 };
 
-
-export const UserRecentActivity = ({ recentActivity }) => {
+export const UserRecentActivity = ({ monthlyActivity }) => {
   const activity_type_icons = {
     Localized: "bi bi-pencil-square",
     Validated: "bi bi-check2-circle",
   };
+
+  const aggregateMonthlyStats = (activities) => {
+    const stats = {};
+
+    Object.keys(activities).forEach((month) => {
+      stats[month] = {
+        Localized: { node: 0, way: 0, relation: 0, challenges: new Set() },
+        Validated: { node: 0, way: 0, relation: 0, challenges: new Set() },
+      };
+
+      activities[month].forEach((activity) => {
+        const { status, osm_type, challenge_id } = activity;
+        if (stats[month][status]) {
+          stats[month][status][osm_type.toLowerCase()]++;
+          stats[month][status].challenges.add(challenge_id);
+        }
+      });
+    });
+
+    return stats;
+  };
+
+  const monthlyStats = aggregateMonthlyStats(monthlyActivity);
+
   return (
     <div className="border border-0 flex-grow-1">
-      <h5 className="card-title mt-4 mb-4">Recent Activity</h5>
+      <h5 className="card-title mt-4 mb-4">Contribution Activity</h5>
       <div>
-        {recentActivity ? (
-          <ul className="list-group list-group-flush">
-            {recentActivity.map((activity) => (
-              <li
-                className="list-group-item d-flex justify-content-between align-items-center"
-                key={activity.feature_id}
-              >
-                <span>
-                  <i className={`text-primary ${activity_type_icons[activity.status]}`} /> {""}
-                  {activity.status} {activity.osm_type}{" "}
-                  <a
-                    className="fw-bold text-decoration-none"
-                    href={`https://openstreetmap.org/${activity.osm_type}/${activity.feature_id}`}
-                    target="_blank"
-                  >
-                    {activity.feature_id}
-                  </a>{" "}
-                  on challenge{" "}
-                  <a
-                    className="fw-bold text-decoration-none"
-                    href={`/challenge/${activity.challenge_id}`}
-                  >
-                    #{activity.challenge_id}.
-                  </a>
-                </span>
-              </li>
-            ))}
-          </ul>
+        {Object.keys(monthlyActivity).length > 0 ? (
+          Object.keys(monthlyActivity).map((month) => (
+            <div key={month} className="mb-5">
+              <h6 className="fw-bold">{month}</h6>
+
+              {/* Contribution Types */}
+              {["Localized", "Validated"].map((type) => {
+                const { node, way, relation, challenges } =
+                  monthlyStats[month][type];
+                const totalContributions = node + way + relation;
+
+                if (totalContributions > 0) {
+                  return (
+                    <div key={type} className="mb-3">
+                      <h6 className="fw-bold">
+                        {type} {node > 0 && `${node} node(s)`}{" "}
+                        {way > 0 && `${way} way(s)`}{" "}
+                        {relation > 0 && `${relation} relation(s)`} across{" "}
+                        {challenges.size} challenge(s)
+                      </h6>
+                      <ul className="list-group list-group-flush ps-3">
+                        {monthlyActivity[month]
+                          .filter((activity) => activity.status === type)
+                          .map((activity) => (
+                            <li
+                              key={activity.feature_id}
+                              className="list-group-item d-flex align-items-center"
+                            >
+                              <i
+                                className={`text-primary ${activity_type_icons[type]} me-2`}
+                              />
+                              {type} {activity.osm_type.toLowerCase()}{" "}
+                              <a
+                                href={`https://openstreetmap.org/${activity.osm_type}/${activity.feature_id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="fw-bold text-decoration-none"
+                              >
+                                {activity.feature_id}
+                              </a>{" "}
+                              in challenge{" "}
+                              <a
+                                href={`/challenge/${activity.challenge_id}`}
+                                className="fw-bold text-decoration-none"
+                              >
+                                #{activity.challenge_id}
+                              </a>
+                            </li>
+                          ))}
+                      </ul>
+                    </div>
+                  );
+                }
+
+                return null; // Don't render for zero contributions
+              })}
+            </div>
+          ))
         ) : (
           <p>No recent activity</p>
         )}
@@ -354,6 +407,6 @@ UserStatsSection.propTypes = {
   }),
 };
 
-UserRecentActivity.propTypes = {
-  recentActivity: PropTypes.arrayOf(PropTypes.object),
-};
+// UserRecentActivity.propTypes = {
+//   recentActivity: PropTypes
+// };

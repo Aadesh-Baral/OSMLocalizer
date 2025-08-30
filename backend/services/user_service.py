@@ -1,5 +1,9 @@
 import jwt
+import calendar
+from collections import defaultdict
+from datetime import datetime
 from datetime import timedelta
+from dateutil.relativedelta import relativedelta
 from flask import current_app
 from flask_httpauth import HTTPTokenAuth
 from sqlalchemy import or_, and_
@@ -111,22 +115,44 @@ class UserService:
         return user
 
     @staticmethod
-    def get_user_recent_activity(user_id: int, limit=5):
+    def get_user_recent_activity(user_id: int, total_months: int):
         """Get recent activity for a user."""
+        current_month = datetime.now().replace(
+            day=1, hour=0, minute=0, second=0, microsecond=0
+        )
+        start_date = current_month - relativedelta(months=total_months)
         query = Feature.query.filter(
             or_(
-                and_(Feature.localized_by == user_id, Feature.status == FeatureStatus.LOCALIZED.value),
-                and_(Feature.validated_by == user_id, Feature.status == FeatureStatus.VALIDATED.value)
+                and_(
+                    Feature.localized_by == user_id,
+                    Feature.status == FeatureStatus.LOCALIZED.value,
+                ),
+                and_(
+                    Feature.validated_by == user_id,
+                    Feature.status == FeatureStatus.VALIDATED.value,
+                ),
             )
         )
-        recent_activity = query.order_by(Feature.last_updated.desc()).limit(limit).all()
-        recent_activity_list = [
-            {
-                "feature_id": activity.id,
-                "challenge_id": activity.challenge_id,
-                "osm_type": activity.osm_type,
-                "status": FeatureStatus(activity.status).name.capitalize()
-            }
-            for activity in recent_activity
-        ]
-        return recent_activity_list
+        if total_months > 0:
+            query = query.filter(Feature.last_updated >= start_date)
+        else:
+            return []
+
+        # Group by month
+        recent_activity = query.order_by(Feature.last_updated.desc()).all()
+
+        activity_by_month = defaultdict(list)
+
+        for activity in recent_activity:
+            month_name = calendar.month_name[activity.last_updated.month]
+            year = activity.last_updated.year
+            activity_by_month[f"{month_name}, {year}"].append(
+                {
+                    "feature_id": activity.id,
+                    "challenge_id": activity.challenge_id,
+                    "osm_type": activity.osm_type,
+                    "status": FeatureStatus(activity.status).name.capitalize(),
+                }
+            )
+
+        return dict(activity_by_month)
