@@ -13,6 +13,7 @@ To get started with OSMLocalizer, simply create an account and log in using your
 
 In the editor view, you can edit the name tags of the element to localize it in the desired language. Once you have completed localizing the element, you can save your changes and move on to the next element in the challenge. When you have completed making changes, your can uploaded them directly to OSM from the application itself.
 
+
 **Features**
 
 OSMLocalizer includes the following features:
