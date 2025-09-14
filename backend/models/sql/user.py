@@ -25,7 +25,7 @@ class User(db.Model):
         db.session.commit()
 
     @staticmethod
-    def get_by_username(username):
+    def get_by_username(username: str):
         """Get a user by username.
         :param username: The username of the user.
         :return: A user object.

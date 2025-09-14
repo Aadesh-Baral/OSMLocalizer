@@ -12,13 +12,13 @@ def timestamp():
     return datetime.datetime.utcnow()
 
 
-def to_strftime(date):
-    """Convert date to string"""
+def to_strftime(date: datetime.datetime):
+    """Convert date to string format"""
     return date.strftime("%Y-%m-%d %H:%M:%S")
 
 
-def to_strfdate(date):
-    """Convert date to string"""
+def to_strfdate(date: datetime.datetime):
+    """Convert date to string date format"""
     return date.strftime("%Y-%m-%d")
 
 

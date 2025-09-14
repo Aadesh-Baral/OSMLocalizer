@@ -30,3 +30,12 @@ class UserRoles(Enum):
     Mapper = 0
     ADMIN = 1
     VALIDATOR = 2
+
+
+class UserLevels(Enum):
+    BEGINNER = 0
+    INTERMEDIATE = 1
+    EXPERT = 2
+    MEGA = 3
+    LEGEND = 4
+    GOD = 5

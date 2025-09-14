@@ -133,7 +133,7 @@ def create_app(config=EnvironmentConfig):
 
     api.add_resource(UserAllAPI, "/users/")
     api.add_resource(UserRoleApi, "/user/<int:user_id>/update/role/<int:role>/")
-    api.add_resource(UserStatSAPI, "/user/<int:user_id>/stats/")
+    api.add_resource(UserStatSAPI, "/user/<string:username>/stats/")
     api.add_resource(
         ChallengeContributorsStatsAPI, "/challenge/<int:challenge_id>/user-stats/"
     )

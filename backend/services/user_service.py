@@ -34,6 +34,14 @@ class UserService:
         return user
 
     @staticmethod
+    def get_user_by_username(username: str) -> User:
+        """Get a user id by username."""
+        user = User.get_by_username(username)
+        if user is None:
+            raise NotFound("USER_NOT_FOUND")
+        return user
+
+    @staticmethod
     def create_user_from_osm(osm_user: dict) -> User:
         """Create a user from OSM data.
         :param osm_user: The OSM user data.

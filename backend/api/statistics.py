@@ -3,6 +3,7 @@ from flask import request
 from datetime import datetime
 
 from backend.services.stats_service import StatsService
+from backend.services.user_service import UserService
 
 
 class HomeStatsAPI(Resource):
@@ -16,9 +17,10 @@ class UserLeaderboardAPI(Resource):
 
 
 class UserStatSAPI(Resource):
-    def get(self, user_id):
+    def get(self, username):
         challenge_id = request.args.get("challengeId", None)
-        return StatsService.get_user_stats(user_id, challenge_id).dict()
+        user = UserService.get_user_by_username(username)
+        return StatsService.get_user_stats(user.id, challenge_id).dict()
 
 
 class ChallengeContributorsStatsAPI(Resource):

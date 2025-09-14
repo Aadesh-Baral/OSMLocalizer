@@ -2,11 +2,11 @@ from cachetools import cached, TTLCache
 from sqlalchemy import or_, and_
 
 from backend.services.user_service import UserService
-from backend.models.sql.enum import FeatureStatus
+from backend.models.sql.enum import FeatureStatus, UserRoles, UserLevels
 from backend.models.sql.features import Feature
 from backend.models.sql.challenge import Challenge
 from backend.models.sql.user import User
-from backend.models.dtos.stats_dto import UserStatsDTO, ListUserStatsDTO, HomeStatsDTO
+from backend.services.utills import to_strfdate
 
 
 class StatsService:
@@ -113,7 +113,11 @@ class StatsService:
         total_challenges = StatsService.get_user_challenegs_count(user_id)
         stats_dto = UserStatsDTO(
             username=user.username,
+            userId=user.id,
             picture_url=user.picture_url,
+            level=UserLevels(user.level).name,
+            role=UserRoles(user.role).name,
+            date_registered=to_strfdate(user.date_registered),
             total_localized=total_localized,
             total_skipped=total_skipped,
             total_validated_by_me=total_validated_by_me,
