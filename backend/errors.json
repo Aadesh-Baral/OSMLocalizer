@@ -13,5 +13,6 @@
     "CONFLICT": "The request could not be completed due to a conflict with the current state of the target resource",
     "NO_FEATURES_TO_LOCALIZE": "No features are left to localize.",
     "NO_FEATURES_TO_VALIDATE": "No feature are left to validate.",
-    "NOT_VALIDATOR": "The user is not a validator and cannot perform this action."
+    "NOT_VALIDATOR": "The user is not a validator and cannot perform this action.",
+    "START_DATE_AFTER_END_DATE": "The start date cannot be after the end date."
 }

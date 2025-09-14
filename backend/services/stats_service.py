@@ -6,6 +6,11 @@ from backend.models.sql.enum import FeatureStatus, UserRoles, UserLevels
 from backend.models.sql.features import Feature
 from backend.models.sql.challenge import Challenge
 from backend.models.sql.user import User
+from backend.models.dtos.stats_dto import (
+    UserStatsDTO,
+    ListUserStatsDTO,
+    HomeStatsDTO,
+)
 from backend.services.utills import to_strfdate
 
 
@@ -41,7 +46,11 @@ class StatsService:
 
     @staticmethod
     def get_user_stats_by_status(
-        user_id: int, action, challenge_id: int = None, start_date=None, end_date=None
+        user_id: int,
+        action,
+        challenge_id: int = None,
+        start_date=None,
+        end_date=None,
     ):
         """Get user stats by status"""
         if action.upper() == "LOCALIZED":
@@ -76,7 +85,7 @@ class StatsService:
                 status=FeatureStatus.INVALIDATED.value, localized_by=user_id
             )
         else:
-            raise Exception("Invalid action")
+            raise ValueError("Invalid action")
         if start_date:
             query = query.filter(Feature.last_updated >= start_date)
         if end_date:
@@ -179,9 +188,8 @@ class StatsService:
 
     @staticmethod
     @cached(cache=TTLCache(maxsize=1024, ttl=300))  # Cache for 5 minutes
-    def get_user_leaderboard():
+    def get_user_leaderboard(start_date=None, end_date=None):
         """Get user leaderboard"""
-        # TODO: Add pagination  and calculate stats using Feature table
         users = (
             Feature.query.with_entities(Feature.localized_by)
             .filter(Feature.localized_by.isnot(None))
@@ -190,5 +198,9 @@ class StatsService:
         )
         user_stats = []
         for user in users:
-            user_stats.append(StatsService.get_user_stats(user[0]))
+            user_stats.append(
+                StatsService.get_user_stats(
+                    user[0], start_date=start_date, end_date=end_date
+                )
+            )
         return ListUserStatsDTO(users=user_stats)

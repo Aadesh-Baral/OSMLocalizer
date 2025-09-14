@@ -1,9 +1,9 @@
 from flask_restful import Resource
 from flask import request
-from datetime import datetime
 
 from backend.services.stats_service import StatsService
 from backend.services.user_service import UserService
+from backend.services.utills import format_and_validate_start_end_date
 
 
 class HomeStatsAPI(Resource):
@@ -13,7 +13,10 @@ class HomeStatsAPI(Resource):
 
 class UserLeaderboardAPI(Resource):
     def get(self):
-        return StatsService.get_user_leaderboard().dict()
+        start_date = request.args.get("startDate", None)
+        end_date = request.args.get("endDate", None)
+        start_date, end_date = format_and_validate_start_end_date(start_date, end_date)
+        return StatsService.get_user_leaderboard(start_date, end_date).dict()
 
 
 class UserStatSAPI(Resource):
@@ -27,10 +30,7 @@ class ChallengeContributorsStatsAPI(Resource):
     def get(self, challenge_id):
         start_date = request.args.get("startDate", None)
         end_date = request.args.get("endDate", None)
-        if start_date:
-            start_date = datetime.strptime(start_date, "%Y-%m-%d")
-        if end_date:
-            end_date = datetime.strptime(end_date, "%Y-%m-%d")
+        start_date, end_date = format_and_validate_start_end_date(start_date, end_date)
         return StatsService.get_challenge_contributors_stats(
             challenge_id, start_date, end_date
         ).dict()
