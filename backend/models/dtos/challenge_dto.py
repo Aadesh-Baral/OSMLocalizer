@@ -103,7 +103,7 @@ class ChallengeSummaryDTO(BaseModel):
     name: str
     description: str
     due_date: str
-    status: int
+    status: str
     to_language: str
     last_updated: str
     centroid: Optional[dict] = None
@@ -132,11 +132,21 @@ class PaginationDTO(BaseModel):
     total_items: int
 
 
+class ChallengeStatusCountDTO(BaseModel):
+    """Challenges status stats DTO for returning challenges status statistics"""
+
+    total: int
+    published: int
+    archived: int
+    draft: int
+
+
 class ChallengeListDTO(BaseModel):
     """Challenge List DTO for returning list of challenges"""
 
     challenges: list
     pagination: PaginationDTO
+    stats: ChallengeStatusCountDTO
 
 
 class SearchChallengeDTO(BaseModel):

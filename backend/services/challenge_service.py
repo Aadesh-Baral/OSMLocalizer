@@ -43,9 +43,15 @@ class ChallengeService:
         bbox_polygon, centroid = ChallengeService.make_polygon_from_bbox(
             challenge_dto.bbox
         )
-        country = ChallengeService.get_country_from_coordinates(centroid.y, centroid.x)
-        overpass_query = challenge_dto.overpass_query.replace("{{bbox}}", f"{bbox_str}")
-        language_tags = [tag.strip() for tag in challenge_dto.language_tags.split(",")]
+        country = ChallengeService.get_country_from_coordinates(
+            centroid.y, centroid.x
+        )
+        overpass_query = challenge_dto.overpass_query.replace(
+            "{{bbox}}", f"{bbox_str}"
+        )
+        language_tags = [
+            tag.strip() for tag in challenge_dto.language_tags.split(",")
+        ]
         challenge = Challenge(
             name=challenge_dto.name,
             description=challenge_dto.description,
@@ -75,7 +81,9 @@ class ChallengeService:
     ) -> ChallengeDTO:
         """Update existing challenge"""
         challenge = ChallengeService.get_challenge_by_id(challenge_id)
-        language_tags = [tag.strip() for tag in challenge_dto.language_tags.split(",")]
+        language_tags = [
+            tag.strip() for tag in challenge_dto.language_tags.split(",")
+        ]
         challenge.name = challenge_dto.name
         challenge.description = challenge_dto.description
         challenge.status = ChallengeStatus[challenge_dto.status].value
@@ -117,7 +125,12 @@ class ChallengeService:
             )
             challenges_dto.append(challenge_dto)
         pagination = PaginationDTO(challenges)
-        return ChallengeListDTO(challenges=challenges_dto, pagination=pagination)
+        challenges_status_count = Challenge.get_challenge_status_count()
+        return ChallengeListDTO(
+            challenges=challenges_dto,
+            pagination=pagination,
+            stats=challenges_status_count,
+        )
 
     @staticmethod
     def delete_challenge(challenge_id: int) -> None:
@@ -130,17 +143,23 @@ class ChallengeService:
         """Get all challenges by country"""
         challenges = Challenge.query.filter_by(country=country).all()
         return ChallengeListDTO(
-            challenges=[ChallengeDTO.from_orm(challenge) for challenge in challenges]
+            challenges=[
+                ChallengeDTO.from_orm(challenge) for challenge in challenges
+            ]
         )
 
     # Code taken from hotosm/tasking-manager
     @staticmethod
-    def make_polygon_from_bbox(bbox: list, srid: int = 4326) -> tuple((Polygon, Point)):
+    def make_polygon_from_bbox(bbox: list, srid: int = 4326) -> tuple(
+        (Polygon, Point)
+    ):
         """make a shapely Polygon in SRID 4326 from bbox and srid"""
         try:
             polygon = box(bbox[0], bbox[1], bbox[2], bbox[3])
             geometry = shape.from_shape(polygon, srid)
-            geom_4326 = db.engine.execute(ST_Transform(geometry, 4326)).scalar()
+            geom_4326 = db.engine.execute(
+                ST_Transform(geometry, 4326)
+            ).scalar()
             polygon = shape.to_shape(geom_4326)
             # Get centroid of polygon
             centroid = polygon.centroid
@@ -148,7 +167,9 @@ class ChallengeService:
             raise BadRequest(message=f"error making polygon: {e}")
 
         if not ChallengeService.validate_bbox_area(polygon):
-            raise BadRequest(message="Challenge bbox area exceeds maximum allowed")
+            raise BadRequest(
+                message="Challenge bbox area exceeds maximum allowed"
+            )
         return polygon, centroid
 
     @staticmethod

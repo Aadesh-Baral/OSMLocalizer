@@ -11,6 +11,7 @@ from backend.models.dtos.challenge_dto import (
     ChallengeDTO,
     ChallengeSummaryDTO,
     ChallengeStatsDTO,
+    ChallengeStatusCountDTO,
     SearchChallengeDTO,
 )
 from backend.services.utills import get_last_updated, to_strfdate, timestamp
@@ -98,7 +99,7 @@ class Challenge(db.Model):
         challenge_dto = ChallengeSummaryDTO(
             id=self.id,
             name=self.name,
-            status=self.status,
+            status=ChallengeStatus(self.status).name,
             description=self.description,
             country=self.country,
             to_language=self.to_language,
@@ -182,6 +183,27 @@ class Challenge(db.Model):
             )
         ).count()
         return count
+
+    @staticmethod
+    def get_challenge_status_count():
+        """Get challenge status count"""
+        total_count = Challenge.query.count()
+        published_count = Challenge.query.filter_by(
+            status=ChallengeStatus.PUBLISHED.value
+        ).count()
+        archived_count = Challenge.query.filter_by(
+            status=ChallengeStatus.ARCHIVED.value
+        ).count()
+        draft_count = Challenge.query.filter_by(
+            status=ChallengeStatus.DRAFT.value
+        ).count()
+        status_count_dto = ChallengeStatusCountDTO(
+            total=total_count,
+            published=published_count,
+            archived=archived_count,
+            draft=draft_count
+        )
+        return status_count_dto
 
     def get_challenge_progress(self):
         """Get challenge progress"""
